@@ -15,34 +15,35 @@ submodule before acting:
 
 | format | Read | Purpose |
 |--------|------|---------|
-| word  | `modules/office/word.md`  | DOCX creation, editing, template filling |
-| ppt   | `modules/office/ppt.md`   | PPTX creation/editing with visual review |
-| excel | `modules/office/excel.md` | XLSX workbooks, formulas, tables, styling |
+| word  | [Word](office/word.md) | DOCX creation, editing, template filling |
+| ppt   | [PPT](office/ppt.md) | PPTX creation/editing with visual review |
+| excel | [Excel](office/excel.md) | XLSX workbooks, formulas, tables, styling |
 
 ## Backend
 
 An explicit `WORD_AUTHORING_SKILL` selection from the local settings page
-overrides automatic Word authoring. Otherwise the agent selects by task shape.
-`minimaxdocx` (the checked-in
-`integrations/minimax-docx` package) is the default for complex reports and
-theses; `officecli` is suitable for simple Word edits. `excel` and `ppt` remain on
+overrides automatic Word authoring. In `auto`, the router selects checked-in
+`minimaxdocx` when available, otherwise `officecli`; it does not infer document
+complexity. Pin `officecli` for a simple edit when that is the intended
+authoring tool. `excel` and `ppt` remain on
 `officecli`. AutoFlow always uses
 `officecli` through `scripts/office_engine.py` and `scripts/validate_office.py`
 for common validation and rendering, regardless of the Word authoring backend.
 If the selected backend is missing, report a blocked capability and stop; never
 silently substitute another backend. Read `workflow.json.capabilities.office`
-for the selected backend and runtime status, and read the selected Skill file
-from `route` / `direct-route` before authoring. Existing managed runs keep
+for the selected backend and runtime status. The route returns both
+`modules/office.md` and the format submodule in `module_files`; read both,
+then the selected Skill file before authoring. Existing managed runs keep
 their selection snapshot until re-planned.
 
-The official operating manual is `integrations/officecli/SKILL.md` (checked-in
+The official operating manual is [officecli SKILL.md](../integrations/officecli/SKILL.md) (checked-in
 package copy) — read it before working; the sections below only distill the
 constraints that prevent costly mistakes and do not replace the official
 documentation.
 
 The module accepts the original request plus any approved task and image artifacts.
 It must not consume images while `VISUAL_STOP` is pending or rejected. Read
-`references/acceptance-contracts.md` and write `.autoflow/intermediate/plans/office.json`
+[acceptance contracts](../references/acceptance-contracts.md) and write `.autoflow/intermediate/plans/office.json`
 before editing.
 
 ## officecli key constraints

@@ -57,8 +57,11 @@ retry budget; a configured fallback runs only after the primary model fails.
 settings page with `python scripts/settings_web.py` to edit these fields without
 printing API keys.
 
-Office backends are not configured in `.env`. The checked-in
-`integrations/minimax-docx` package is the default for complex Word reports and
-theses; its check verifies the .NET runtime. `officecli` remains the common
-validation/render backend and is suitable for simple Word edits. The Agent
-selects by task shape and never silently substitutes an unavailable backend.
+Office runtime locations are not configured in `.env`. With
+`WORD_AUTHORING_SKILL=auto`, the current router selects the checked-in
+`integrations/minimax-docx` package when it is available; otherwise it selects
+`officecli`. The Web setting can pin either backend or an installed GitHub
+Skill explicitly. A missing pinned Skill blocks Word authoring rather than
+falling back. `officecli` remains required for common validation/rendering
+and for PPT/Excel. Check the selected backend with `capabilities --json` and
+read the `route` / `direct-route` result before authoring.

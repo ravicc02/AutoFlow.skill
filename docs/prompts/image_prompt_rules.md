@@ -53,7 +53,7 @@ Before writing prompts:
 
 ## Resolution and concurrency
 
-- Read `references/image-parameter-matrix.md` for all 1K/2K/4K and eight
+- Read the [image size matrix](../../references/image-routing-taxonomy.md#ai-image-size-matrix) for all 1K/2K/4K and eight
   aspect-ratio combinations. The batch default is `resolution: "4K"` plus
   `aspect_ratio: "auto"`, resolved for each image before requesting the API.
 - Select a requested ratio explicitly. When it is unspecified, auto follows a

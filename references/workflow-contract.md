@@ -81,7 +81,7 @@ Allowed modules and actions:
 - video: analyze, record, create, process
 - package: assemble
 
-Office steps use `office_acceptance` with `office.document` and `office.validation`; `format` dispatches to `modules/office/{word,ppt,excel}.md`. Video steps use `video_acceptance` with `video.media` and `video.validation`. Package steps use `package_acceptance` with `package.bundle` and `package.manifest`. Other steps use `artifacts_exist` unless their module contract defines a stricter report validator.
+Office steps use `office_acceptance` with `office.document` and `office.validation`; `format` dispatches to `modules/office/{word,ppt,excel}.md`. The route's `module_files` lists `modules/office.md` before that format file, while the legacy `module_file` remains the format file. Managed routes use the capability snapshot saved with the workflow; a local backend or selection change requires re-planning. Video steps use `video_acceptance` with `video.media` and `video.validation`. Package steps use `package_acceptance` with `package.bundle` and `package.manifest`. Other steps use `artifacts_exist` unless their module contract defines a stricter report validator.
 
 ## State transitions
 

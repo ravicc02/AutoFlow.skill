@@ -187,7 +187,8 @@ def main() -> int:
                 emit(payload)
             else:
                 print(f"{payload['module']}.{payload['action']} ({payload['execution_mode']})")
-                print(f"  module: {payload['module_file']}")
+                for path in payload["module_files"]:
+                    print(f"  module: {path}")
                 for path in payload.get("capability_files", []):
                     print(f"  capability: {path}")
             return 0
@@ -203,7 +204,8 @@ def main() -> int:
             else:
                 for item in payload.get("steps", [payload.get("step", payload)]):
                     print(f"{item['id']}: {item['module']}.{item['action']}")
-                    print(f"  module: {item['module_file']}")
+                    for path in item["module_files"]:
+                        print(f"  module: {path}")
                     print(f"  skills: {', '.join(item['skill_names'])}")
                     for path in item["skill_files"]:
                         print(f"    - {path}")

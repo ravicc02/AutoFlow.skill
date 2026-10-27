@@ -9,6 +9,12 @@ and **dispatch** (module docs map needs to capabilities).
 
 Run `python scripts/autoflow.py integrations --json` to audit the catalog.
 
+The settings UI stores user-cloned GitHub Skills under Git-ignored
+`user_skills/`, not here. They are untrusted knowledge files, not audited
+integration runtimes. Installing one does not authorize running its scripts
+or assert that its tools are available; only an explicitly selected Word
+authoring Skill enters the Word route.
+
 ## Package contract (manifest 2.0)
 
 Every package directory must contain a `manifest.json`:
@@ -23,6 +29,7 @@ Every package directory must contain a `manifest.json`:
 | `check` | `{"entry": "...", "runtime": "python"}` — the script that probes local availability; `null` for `knowledge-only` |
 | `upstream` / `revision` / `license` | Provenance, pinned for auditability |
 | `self_contained` | Must be `true`: no network, no external skill, no separate checkout |
+| `external_user_skill_required` / `source_checkout_required` | Both must be `false` |
 
 **What the manifest does not contain:** usage instructions, parameters, or
 command details. Usage knowledge lives in the package's own `SKILL.md`; the
@@ -42,6 +49,14 @@ unusable). The check only verifies **local run conditions** (binary in PATH,
 runtime importable, package files present) — never internal file structure of
 the skill. `knowledge-only` packages need no check: availability means
 `SKILL.md` exists.
+
+The catalog validates each manifest and runs the local check for each `tool`
+package. It reports `available` only when both pass. A new package is not
+routable before that; never substitute a user-level Skill for an unavailable
+built-in capability. Operating-system runtimes may remain dependencies when
+bundling is inappropriate: provision them using
+[environment initialization](../references/init.md), not by resolving
+executable code from another Skill directory.
 
 ## Current packages
 

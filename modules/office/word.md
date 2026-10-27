@@ -1,6 +1,6 @@
 # Office submodule: word (.docx)
 
-Dispatched from `modules/office.md` when `format=word`. Select the authoring
+Dispatched from [the Office module](../office.md) when `format=word`. Select the authoring
 backend from the resolved capabilities before editing:
 
 - `minimaxdocx` or `minimax-docx`: preferred for complex report/thesis create,
@@ -10,18 +10,20 @@ backend from the resolved capabilities before editing:
 
 Validation always follows `scripts/office_engine.py` +
 `scripts/validate_office.py`, regardless of the authoring backend.
-Read the official operating manual in `integrations/officecli/SKILL.md` first —
+Read the official operating manual in [officecli SKILL.md](../../integrations/officecli/SKILL.md) first —
 this submodule applies it to DOCX workflows, it does not replace it.
 
 Backend contract:
 
 - `WORD_AUTHORING_SKILL` in the local `.env` can explicitly pin `minimaxdocx`,
-  `officecli`, or one installed `github:<owner--repo>` Skill. `auto` retains the
-  task-shape default. An explicitly selected but unavailable Skill is blocked,
+  `officecli`, or one installed `github:<owner--repo>` Skill. `auto` selects
+  available `minimaxdocx` first, then `officecli`; it does not classify the
+  task. An explicitly selected but unavailable Skill is blocked,
   never replaced by officecli for authoring. Read the `skill_files` and
   `authoring_skill` returned by `direct-route` or `route` before authoring.
-- `minimaxdocx` is the default for complex reports and theses; read the
-  checked-in package at `integrations/minimax-docx/SKILL.md`, verify it with
+- In `auto`, `minimaxdocx` is selected whenever available, regardless of task
+  shape. For complex reports and theses, read the checked-in package at
+  [minimax-docx SKILL.md](../../integrations/minimax-docx/SKILL.md); verify it with
   `python scripts/autoflow.py capabilities --json`, and never silently
   substitute `officecli`.
 - `officecli` remains suitable for simple Word edits; it is always the common
@@ -30,6 +32,9 @@ Backend contract:
   must report the selected backend as `available`.
 - Existing managed runs retain their selected backend snapshot. Re-plan an
   existing run after changing the Word selection in the settings UI.
+
+For `action=fill`, also read the [DOCX fill rules](../../docs/prompts/docx_fill_rules.md)
+before editing the supplied template. Other Word actions do not need that file.
 
 ## Workflow (per action)
 

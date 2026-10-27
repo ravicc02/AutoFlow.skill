@@ -8,6 +8,7 @@ autoflow/
 ├── SKILL.md                 # compact entrypoint and routing rules
 ├── modules/                 # task/image/office/video/package contracts (office dispatches by format)
 ├── integrations/            # audited local capability implementations
+├── user_skills/             # ignored, user-cloned GitHub knowledge Skills
 ├── scripts/                 # CLI, adapters, validators, and executors
 ├── references/              # workflow contracts, gates, acceptance rules
 ├── recipes/                 # reusable DAG templates
@@ -48,7 +49,7 @@ Current packages: `officecli` (role: engine — the office document binary plus
 its official SKILL.md; `scripts/office_engine.py` is AutoFlow's thin call
 wrapper on top of it), `minimax-docx`, `nature-figure`, and `impeccable`.
 
-Read `references/integration-contract.md` before adding or updating an
+Read [the integration contract](../integrations/README.md) before adding or updating an
 integration. A package whose check reports `missing` or whose manifest is
 invalid is a hard capability signal, never a hint to substitute a user-level
 Skill or plugin.

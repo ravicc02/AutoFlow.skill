@@ -6,22 +6,26 @@
 
 ### Added
 
+- 增加路由与文档引用回归测试：检查各模块返回的 `module_files`、Office 父/子模块次序和活跃 Markdown 相对链接。
+
 - 新增仅本机监听的 Web 设置页：模型与密钥配置、批量参考图编辑默认模型/尺寸/回退模型/重试次数、GitHub HTTPS 技能包安装/删除/文件探测、Word 编写技能选择。现有密钥只显示配置状态，空白提交不覆盖；用户包存放于被 Git 忽略的 `user_skills/`。
 - 新增配置与 Web 安全测试，覆盖密钥遮蔽、请求来源校验、GitHub 克隆地址限制、受管包删除边界、改图回退以及显式 Word 选择不可用时的阻断。
 
-- 新增 `references/image-parameter-matrix.md`：记录配置上游的 1K/2K/4K × 8 种宽高比对应的 24 个像素尺寸，并规定批量生图的 `4K + auto` 选择顺序、用户显式比例优先及上游拒绝尺寸时不得静默替换。
+- 在 `references/image-routing-taxonomy.md` 记录配置上游的 1K/2K/4K × 8 种宽高比对应的 24 个像素尺寸，并规定批量生图的 `4K + auto` 选择顺序、用户显式比例优先及上游拒绝尺寸时不得静默替换。
 - 新增 `scripts/image_size.py` 与生图测试：按参考图比例或素材类型解析自动宽高比，覆盖完整矩阵、旧像素尺寸兼容、显式比例冲突及批量默认值。
 - 固化仓库维护流程：修改 Skill、引用、代码、配置或测试时，在提交前同步更新 `CHANGELOG.md` 的 `Unreleased`，验证并核对暂存内容；普通 AutoFlow 任务的运行产物不触发仓库变更日志。
 
-- 新增 `integrations/` 包契约（manifest 2.0）：每个包声明 `type`（tool/knowledge-only）、`capabilities`（能力名列表）、`check` 入口（仅探测本地运行条件）；核心层 `IntegrationRegistry` 自动发现所有包，`integration_catalog()` 依赖注册表输出，不再硬编码 detect 函数。
+- 新增 `integrations/` 包契约（manifest 2.0）：每个包声明 `type`（tool/knowledge-only）、`capabilities`（能力名列表）、`check` 入口（仅探测本地运行条件）；核心层 `integration_catalog()` 扫描清单并运行包自身的 check，不再硬编码集成包清单。
 - 新增 `integrations/officecli/` 包：officecli 官方 SKILL.md 迁入集成目录，manifest 声明 `role: engine` + 三个 office 能力，check 脚本探测本机二进制版本。
 - 新增 `integrations/nature-figure/scripts/check.py` 与 `integrations/impeccable/scripts/check.py`：分别探测 Python 依赖和 Node.js 可用性（manifest 2.0 升级）。
-- 新增 `references/integration-contract.md` 文档（旧版从 `integration_manifest.json` 契约更新为 2.0 合约）。
-- 新增注册表单元测试：missing/invalid manifest、check 运行、knowledge-only 包语义。
+- 在 `integrations/README.md` 维护 manifest 2.0 包契约（旧版从 `integration_manifest.json` 契约更新）。
+- 新增集成清单测试：missing/invalid manifest、check 运行、knowledge-only 包语义。
 - 新增 `references/init.md`：环境初始化提示词驱动的唯一入口（client-neutral），供 Agent 在任意客户端按需检查/安装所选能力环境。
 - 新增浏览器截图 `capture_scope`（viewport/selector/page）与跨平台浏览器检测（PATH 查找 + `AUTOFLOW_BROWSER_PATH`）：一块完整看板可超出单视口高度，不再用长图拼接多个独立看板；视觉审查清单新增规则 8/9，配套 `tests/test_capture_frontend_screenshots.py`。
 
 ### Changed
+
+- 整理规范与路由文档：图片矩阵合并到图片路由总参考，集成契约合并到 `integrations/README.md`，孤立的提交打包提示词规则并入 `modules/package.md`；删除三份重复文档并更新模板与模块引用。Office 路由新增有序 `module_files`，同时返回父模块与 Word/PPT/Excel 子模块，保留原 `module_file` 兼容字段；统一说明 `auto` 的实际后端选择顺序。
 
 - 批量 `reference_image` 任务使用独立的改图默认参数；主模型按配置次数尝试失败后才启用回退模型，并在结果中记录实际模型。Word 路由将所选 Skill 的路径和 `authoring_skill` 返回给 Agent，保留 officecli 公共校验，不再为显式指定的 Word 技能静默降级。
 

@@ -6,7 +6,7 @@ This document defines how `AutoFlow office.fill` (format `word`) should preserve
 
 - Preserve the template structure and styling intent.
 - Save to a new output file, never overwrite the source template.
-- The unified office module lets the agent choose the Word backend by task shape: complex reports and theses prefer `minimaxdocx`/`minimax-docx`, while `officecli` remains available for simple Word edits and is always the common validation/render backend. Never fall back to a user-level Word/Python Skill.
+- Follow the selected Word authoring Skill in the [Word module](../../modules/office/word.md): `auto` picks available `minimaxdocx` first, then `officecli`; an explicit installed GitHub Skill is also valid. Never silently replace a pinned backend. `officecli` remains the common validation/render backend.
 - After editing, run the office acceptance pipeline (`office_engine.py validate` + `validate_office.py`) and keep the engine report as part of `office.validation`.
 - Plan figures before writing report text.
 - Default target tier is `excellent`.

@@ -13,14 +13,14 @@ For diagrams, pass `--direct` to `generate_diagram_assets.py`; it defaults to on
 ## Actions
 
 - `capture`: real browser/application/terminal evidence. Prefer deterministic capture from the actual local result.
-- `ai`: AI-generated screenshots, explanatory assets, and scientific schematics only when real capture is unavailable or the request explicitly needs generation. The scientific-figure adapter uses AutoFlow's `.env` upstream with `gpt-image-2`; it does not call OpenRouter.
+- `ai`: AI-generated screenshots, explanatory assets, and scientific schematics only when real capture is unavailable or the request explicitly needs generation. The scientific-figure adapter uses AutoFlow's configured `.env` image upstream and model; it does not call OpenRouter.
 - `diagram`: architecture, ER, UML, process, data-flow, and any other structured diagram. Prefer deterministic DSL renderers, but accept arbitrary Mermaid/D2/PlantUML source through the custom DSL route; the built-in semantic kinds are convenience templates, not a closed whitelist.
 - `chart`: plots derived from real task data and calculations. Publication-grade
   volcano, ROC, dot plot, marginal, and paired templates are provided by the
   integrated Nature Figure backend.
 
 The action boundary is stable while internal families remain explicit. Read
-`references/image-routing-taxonomy.md` and treat its union as the image module's
+[image routing and size reference](../references/image-routing-taxonomy.md) and treat its union as the image module's
 full regression surface; an integrated family is never omitted from testing.
 
 In managed mode before PLAN_STOP, read the `image` capability report in
@@ -31,8 +31,8 @@ call an unverified external Skill.
 
 Read only the route-specific guidance needed:
 
-- AI assets: read `references/image-parameter-matrix.md` and
-  `docs/prompts/image_prompt_rules.md`, then use `generate_images.py` and
+- AI assets: read the [size matrix and edit defaults](../references/image-routing-taxonomy.md#ai-image-size-matrix) and
+  [prompt rules](../docs/prompts/image_prompt_rules.md), then use `generate_images.py` and
   `validate_prompt.py`.
   Run the redacted `autoflow.py env-check --json` preflight once per batch.
   The default policy uses one upstream probe and at most two generation
@@ -49,14 +49,14 @@ Read only the route-specific guidance needed:
   board. Never crop a required board merely to fit one viewport.
 - Frontend visual quality: when the step declares
   `design_backend: integrated-impeccable`, read
-  `integrations/impeccable/SKILL.md` and follow its command reference and
+  [impeccable SKILL.md](../integrations/impeccable/SKILL.md) and follow its command reference and
   local tools — usage knowledge lives in the package, AutoFlow does not
   re-document it. Its offline entry point is
   `integrations/impeccable/scripts/impeccable_adapter.mjs`; any visual
   findings become evidence or remediation inputs, not an automatic approval.
-- Diagrams: `docs/prompts/diagram_asset_rules.md`, then use `generate_diagram_assets.py`.
+- Diagrams: [diagram rules](../docs/prompts/diagram_asset_rules.md), then use `generate_diagram_assets.py`.
 - Scientific schematics: use `generate_scientific_schematic.py` and validate with `validate_scientific_figure.py`.
-- Publication charts: read `integrations/nature-figure/SKILL.md` and follow
+- Publication charts: read [nature-figure SKILL.md](../integrations/nature-figure/SKILL.md) and follow
   it, running the package's own `scripts/plot_templates.py` — usage knowledge
   lives in the package, AutoFlow does not re-document it. Do not invoke a
   user-level nature-figure Skill or depend on the separate source checkout.

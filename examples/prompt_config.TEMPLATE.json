@@ -4,7 +4,7 @@
   "total_count": 0,
   "resolution": "4K",
   "aspect_ratio": "auto",
-  "_resolution_comment": "Batch defaults to 4K + auto. See references/image-parameter-matrix.md for all 24 tier/ratio sizes; explicit legacy WIDTHxHEIGHT is also accepted.",
+  "_resolution_comment": "Batch defaults to 4K + auto. See references/image-routing-taxonomy.md#ai-image-size-matrix for all 24 tier/ratio sizes; explicit legacy WIDTHxHEIGHT is also accepted.",
   "output_dir": "./autoflow/.autoflow/intermediate/generated_images",
   "_output_dir_comment": "Relative to the workspace; generated assets stay in the run's intermediate directory.",
   "max_workers": 4,

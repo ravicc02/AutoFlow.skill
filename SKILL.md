@@ -54,11 +54,11 @@ Then read only the modules selected for this run:
 
 | Module | Read | Purpose |
 |---|---|---|
-| task | `modules/task.md` | Research, GitHub-first builds, computation, execution |
-| image | `modules/image.md` | Capture, AI assets, diagrams, charts |
-| office | `modules/office.md` | Unified DOCX/PPTX/XLSX work; dispatches to `modules/office/{word,ppt,excel}.md` by `format` |
-| video | `modules/video.md` | Analysis, recording, creation, processing |
-| package | `modules/package.md` | Requirement-driven delivery assembly |
+| task | [task](modules/task.md) | Research, GitHub-first builds, computation, execution |
+| image | [image](modules/image.md) | Capture, AI assets, diagrams, charts |
+| office | [office](modules/office.md) | Unified DOCX/PPTX/XLSX work; `format` selects its submodule |
+| video | [video](modules/video.md) | Analysis, recording, creation, processing |
+| package | [package](modules/package.md) | Requirement-driven delivery assembly |
 
 Before planning or executing a step, resolve the exact local instructions with
 the CLI instead of invoking an external plugin:
@@ -90,7 +90,7 @@ It reports the selected image model, resolution, retry limits, and validator
 configuration without exposing secrets. Office backend availability is reported
 separately by `capabilities --json`.
 For AI-image batch size selection, follow
-[the image parameter matrix](references/image-parameter-matrix.md): default
+[the image parameter matrix](references/image-routing-taxonomy.md#ai-image-size-matrix): default
 4K with an auto-selected aspect ratio, unless the request specifies otherwise.
 
 The command validates each integration manifest against
@@ -109,10 +109,14 @@ existing secrets, and stores cloned Skills under ignored `user_skills/`.
 Installed GitHub Skills are knowledge files, not audited integration runtimes;
 their presence does not authorize executing repository scripts.
 
-Compact routing includes the module file, fresh verification, and required
-capability adapters. There is no methodology overlay loader — `route --full`
+Compact routing includes `module_files` (the Office parent and format submodule
+when applicable), the managed run's capability snapshot or a fresh direct-mode
+detection, and required capability adapters. Re-run `capabilities --json` and
+re-plan a managed run when local backends or settings change. There is no
+methodology overlay loader — `route --full`
 is a compat alias of compact routing and no longer loads additional files.
-Read only the local paths returned by the selected route.
+Read the returned module files in order, then their action-specific references
+and the selected capability's local Skill file. Do not read unrelated modules.
 
 Frontend project steps may additionally resolve the integrated `impeccable`
 design language and offline detector when the step declares

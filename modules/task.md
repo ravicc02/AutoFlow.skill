@@ -12,8 +12,9 @@ Use this module for work that creates the factual or executable foundation consu
 Every completed step must produce the artifact IDs declared in `workflow.json`. Register them through `autoflow.py transition --to completed --artifact ID=PATH`.
 
 Before acting on a task step, run `autoflow.py route --workflow ... --step ...
---json --compact` and read the returned required files. Compact routing applies
-fresh verification and only guidance required by the current step. Read the
+--json --compact` and read the returned required files. Managed routing uses
+the run's capability snapshot and only guidance required by the current step;
+re-plan after backend changes. Read the
 exact paths returned by the CLI; independent or cross-model review is not part
 of the default route.
 
@@ -38,7 +39,7 @@ An unmodified clone is not a completed build.
 
 For frontend project builds, use the integrated `impeccable` route when the
 step declares `design_backend: integrated-impeccable`. Read
-`integrations/impeccable/SKILL.md` and follow its command reference and
+[impeccable SKILL.md](../integrations/impeccable/SKILL.md) and follow its command reference and
 local tools — usage knowledge lives in the package, AutoFlow does not
 re-document it. Its offline entry point is
 `integrations/impeccable/scripts/impeccable_adapter.mjs`; do not run
@@ -95,7 +96,7 @@ Completing the research step marks `SOURCE_STOP` not applicable in this case and
 
 ## Build completion
 
-Before baseline or dependency commands, read `references/environment-contract.md` and follow [environment initialization](../references/init.md). Inspect the project manifest, run only the selected setup commands as the Agent, place the managed runtime below `.autoflow/runtime/<step-id>/`, and register its ready `agent-init` report as `task.environment` when declared. Ordinary missing runtimes and dependencies are automatic remediation work, not a user blocker.
+Before baseline or dependency commands, read the [environment contract](../references/environment-contract.md) and follow [environment initialization](../references/init.md). Inspect the project manifest, run only the selected setup commands as the Agent, place the managed runtime below `.autoflow/runtime/<step-id>/`, and register its ready `agent-init` report as `task.environment` when declared. Ordinary missing runtimes and dependencies are automatic remediation work, not a user blocker.
 
 Record the selected upstream URL and revision, baseline commands/results, change plan, changed files, startup documentation, and verification commands. Produce the project directory, a machine-readable result summary, and the environment report when the workflow declares those outputs.
 

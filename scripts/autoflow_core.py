@@ -2265,19 +2265,23 @@ def route_for_workflow(
         }
         if step.get("module") == "image":
             routed_capabilities["image"] = image_capability_for_action(image, step.get("action", ""))
+        module_file = (
+            root / "modules" / step["module"] / f"{step.get('format', '')}.md"
+            if step.get("module") == "office"
+            else root / "modules" / f"{step['module']}.md"
+        ).resolve()
+        module_files = (
+            [str((root / "modules" / "office.md").resolve()), str(module_file)]
+            if step.get("module") == "office" else [str(module_file)]
+        )
         routed_steps.append(
             {
                 "id": step["id"],
                 "module": step["module"],
                 "action": step["action"],
                 "status": status,
-                "module_file": str(
-                    (
-                        root / "modules" / step["module"] / f"{step.get('format', '')}.md"
-                        if step.get("module") == "office"
-                        else root / "modules" / f"{step['module']}.md"
-                    ).resolve()
-                ),
+                "module_file": str(module_file),
+                "module_files": module_files,
                 "skill_names": names,
                 "skill_files": [
                     impeccable.get("skill_file", "")
