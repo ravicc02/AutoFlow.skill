@@ -17,6 +17,23 @@ from validate_prompt import validate_structure
 
 
 class GenerateImageTaskTests(unittest.TestCase):
+    def test_batch_edit_uses_fallback_after_primary_retries(self):
+        with tempfile.TemporaryDirectory() as temp:
+            info = {"index": 1, "total": 1, "name": "edit", "prompt": "fix",
+                    "output_dir": temp, "resolution": "2880x2880", "ref_image": "reference.png",
+                    "max_retries": 2, "retry_delay": 0, "model": "primary", "fallback_model": "secondary"}
+            calls = []
+
+            def generate(**kwargs):
+                calls.append(kwargs["model"])
+                return "output.png" if kwargs["model"] == "secondary" else None
+
+            with patch.object(generate_images, "generate_image_single", side_effect=generate):
+                result = generate_images.generate_image_task(info)
+            self.assertEqual(calls, ["primary", "primary", "secondary"])
+            self.assertTrue(result["fallback_used"])
+            self.assertEqual(result["model"], "secondary")
+
     def test_parameter_matrix_matches_all_supported_tiers_and_ratios(self):
         self.assertEqual(SIZE_MATRIX, {
             "1K": {"1:1": "1024x1024", "3:2": "1536x1024", "2:3": "1024x1536",

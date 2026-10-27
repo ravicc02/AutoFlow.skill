@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from env_config import env_report, load_skill_env
+from skill_packages import installed_skills
 
 
 SCHEMA_ID = "autoflow/1.0"
@@ -364,29 +365,43 @@ def detect_office_backend() -> dict[str, Any]:
         "root": str((root / "integrations" / "officecli").resolve()),
         "message": "Simple Word edits and the common validation/render backend." if report.get("status") == "available" else report.get("message", ""),
     }
-    selected_word_backend = "minimaxdocx" if minimax_backend["status"] == "available" else "officecli"
+    installed_options = [
+        {"backend": item["id"], "status": item["status"], "root": str(Path(item["skill_files"][0]).parent) if item["skill_files"] else "",
+         "skill_file": item["skill_files"][0] if item["skill_files"] else "", "message": "Installed GitHub Skill"}
+        for item in installed_skills(root)
+    ]
+    requested = load_skill_env(root).get("WORD_AUTHORING_SKILL", "auto") or "auto"
+    selected_word_backend = ("minimaxdocx" if minimax_backend["status"] == "available" else "officecli") if requested == "auto" else requested
+    options = [minimax_backend, officecli_backend, *installed_options]
+    selected_option = next((item for item in options if item["backend"] == selected_word_backend), None)
+    if selected_option is None:
+        selected_option = {"backend": selected_word_backend, "status": "missing", "root": "", "message": "Selected Word Skill is not installed."}
+    skill_file = selected_option.get("skill_file", "")
+    if not skill_file and selected_word_backend in {"minimaxdocx", "officecli"}:
+        package = "minimax-docx" if selected_word_backend == "minimaxdocx" else "officecli"
+        skill_file = str((root / "integrations" / package / "SKILL.md").resolve())
     word_backend = {
-        "default": "minimaxdocx",
+        "default": requested,
         "selected": selected_word_backend,
         "backend": selected_word_backend,
-        "status": minimax_backend["status"] if selected_word_backend == "minimaxdocx" else officecli_backend["status"],
-        "message": minimax_backend["message"] if selected_word_backend == "minimaxdocx" else officecli_backend["message"],
+        "status": selected_option["status"],
+        "message": selected_option["message"],
+        "root": selected_option.get("root", ""),
+        "skill_file": skill_file,
     }
-    if selected_word_backend == "minimaxdocx":
-        word_backend["root"] = minimax_backend["root"]
     base = {
         **report,
         "integration_root": str((root / "integrations" / "officecli").resolve()),
         "engine_script": str(engine_script.resolve()),
         "validator_script": str(validator_script.resolve()),
         "word_backend": word_backend,
-        "word_backend_options": [minimax_backend, officecli_backend],
+        "word_backend_options": options,
         "ppt_backend": "officecli",
         "excel_backend": "officecli",
         "officecli_status": report.get("status", "missing"),
     }
-    if word_backend["status"] != "available":
-        base["message"] = word_backend["message"]
+    if word_backend["status"] != "available" or officecli_backend["status"] != "available":
+        base["message"] = word_backend["message"] if word_backend["status"] != "available" else officecli_backend["message"]
         base["status"] = "blocked"
     return base
 
@@ -621,7 +636,7 @@ def validate_capabilities(workflow: dict[str, Any]) -> None:
         office = (workflow.get("capabilities") or {}).get("office") or detect_office_backend()
         office_steps = [step for step in workflow.get("steps", []) if step.get("module") == "office"]
         word_required = any(step.get("format") == "word" for step in office_steps)
-        officecli_required = any(step.get("format") in {"ppt", "excel"} for step in office_steps)
+        officecli_required = bool(office_steps)  # All formats share officecli validation/rendering.
         backend_unavailable = (
             (word_required and (office.get("word_backend") or {}).get("status") != "available")
             or (officecli_required and office.get("officecli_status", office.get("status")) != "available")
@@ -2208,6 +2223,10 @@ def route_for_workflow(
     impeccable = (workflow.get("capabilities") or {}).get("impeccable") or detect_impeccable_backend()
     routed_steps: list[dict[str, Any]] = []
     for step in selected:
+        if step.get("module") == "office" and step.get("format") == "word":
+            selected_skill = (office.get("word_backend") or {}).get("skill_file", "")
+            if selected_skill and not Path(selected_skill).is_file():
+                raise AutoFlowError(f"Selected Word Skill is no longer installed: {selected_skill}")
         status = (state.get("steps", {}).get(step["id"]) or {}).get("status", "pending")
         names: list[str] = []
         if step.get("design_backend") == "integrated-impeccable":
@@ -2229,6 +2248,8 @@ def route_for_workflow(
                 for key in ("engine_script", "validator_script", "exe")
                 if str(office.get(key, ""))
             ]
+            if step.get("format") == "word" and (office.get("word_backend") or {}).get("skill_file"):
+                capability_files.append(office["word_backend"]["skill_file"])
         if step.get("module") == "video":
             capability_files = [
                 str(video.get(key, ""))
@@ -2263,10 +2284,11 @@ def route_for_workflow(
                     if name == "impeccable"
                     else ""
                     for name in names
-                ],
+                ] + ([office["word_backend"]["skill_file"]] if step.get("module") == "office" and step.get("format") == "word" and (office.get("word_backend") or {}).get("skill_file") else []),
                 "capability_files": capability_files,
                 "capability_names": capability_names,
                 "capabilities": routed_capabilities,
+                **({"authoring_skill": office["word_backend"]["selected"]} if step.get("module") == "office" and step.get("format") == "word" and office.get("word_backend") else {}),
             }
         )
 

@@ -21,7 +21,9 @@ submodule before acting:
 
 ## Backend
 
-The agent selects Word authoring by task shape. `minimaxdocx` (the checked-in
+An explicit `WORD_AUTHORING_SKILL` selection from the local settings page
+overrides automatic Word authoring. Otherwise the agent selects by task shape.
+`minimaxdocx` (the checked-in
 `integrations/minimax-docx` package) is the default for complex reports and
 theses; `officecli` is suitable for simple Word edits. `excel` and `ppt` remain on
 `officecli`. AutoFlow always uses
@@ -29,7 +31,9 @@ theses; `officecli` is suitable for simple Word edits. `excel` and `ppt` remain 
 for common validation and rendering, regardless of the Word authoring backend.
 If the selected backend is missing, report a blocked capability and stop; never
 silently substitute another backend. Read `workflow.json.capabilities.office`
-for the selected backend and runtime status.
+for the selected backend and runtime status, and read the selected Skill file
+from `route` / `direct-route` before authoring. Existing managed runs keep
+their selection snapshot until re-planned.
 
 The official operating manual is `integrations/officecli/SKILL.md` (checked-in
 package copy) — read it before working; the sections below only distill the

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutoFlow 设置</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="mark">A</span><div><strong>AutoFlow</strong><small>本地设置</small></div></div>
+      <nav aria-label="设置分类">
+        <button class="nav active" data-tab="models" type="button">模型配置</button>
+        <button class="nav" data-tab="edits" type="button">批量改图</button>
+        <button class="nav" data-tab="skills" type="button">技能包</button>
+        <button class="nav" data-tab="word" type="button">Word 路由</button>
+      </nav>
+      <div class="side-note">仅限本机访问<br>配置保存在本地 .env</div>
+    </aside>
+    <main>
+      <header><div><div class="eyebrow">PREFERENCES</div><h1 id="page-title">模型配置</h1></div><span id="state" role="status">正在读取...</span></header>
+      <section id="models" class="panel active" aria-labelledby="page-title">
+        <h2>AI 生图</h2>
+        <div class="fields"><label>上游地址<input data-key="BASEURL" type="url" placeholder="https://..."></label><label>模型 ID<input data-key="IMAGE_MODEL" autocomplete="off"></label><label>API 密钥 <span class="secret-status" data-status="APIKEY"></span><input data-key="APIKEY" type="password" autocomplete="new-password" placeholder="留空保持不变"></label><label>默认分辨率<select data-key="IMAGE_DEFAULT_RESOLUTION"><option>1K</option><option>2K</option><option>4K</option></select></label><label>重试次数<input data-key="IMAGE_MAX_RETRIES" type="number" min="1" max="10"></label><label>探测次数<input data-key="IMAGE_PROBE_RETRIES" type="number" min="1" max="10"></label></div>
+        <h2>提示词质检</h2>
+        <div class="fields"><label>质检上游地址<input data-key="VALIDATOR_BASEURL" type="url" placeholder="https://..."></label><label>质检模型 ID<input data-key="VALIDATOR_MODEL" autocomplete="off"></label><label>质检密钥 <span class="secret-status" data-status="VALIDATOR_APIKEY"></span><input data-key="VALIDATOR_APIKEY" type="password" autocomplete="new-password" placeholder="留空保持不变"></label><label>重试次数<input data-key="VALIDATOR_MAX_RETRIES" type="number" min="1" max="10"></label><label>响应格式<select data-key="VALIDATOR_RESPONSE_FORMAT"><option value="">默认</option><option value="json_object">json_object</option></select></label><label>推理强度<select data-key="VALIDATOR_REASONING_EFFORT"><option value="">默认</option><option>low</option><option>medium</option><option>high</option><option>max</option></select></label></div>
+        <div class="actions"><button class="primary" data-save="models" type="button">保存模型设置</button></div>
+      </section>
+      <section id="edits" class="panel" aria-label="批量改图">
+        <h2>参考图批量编辑</h2>
+        <p class="subtle">只影响带 reference_image 的批量任务；任务或单图的显式参数优先。</p>
+        <div class="fields"><label>默认模型 ID<input data-key="IMAGE_EDIT_MODEL" placeholder="留空继承生图模型"></label><label>回退模型 ID<input data-key="IMAGE_EDIT_FALLBACK_MODEL" placeholder="留空不回退"></label><label>默认分辨率<select data-key="IMAGE_EDIT_DEFAULT_RESOLUTION"><option>1K</option><option>2K</option><option>4K</option></select></label><label>每个模型尝试次数<input data-key="IMAGE_EDIT_MAX_RETRIES" type="number" min="1" max="10"></label></div>
+        <div class="actions"><button class="primary" data-save="edits" type="button">保存改图设置</button></div>
+      </section>
+      <section id="skills" class="panel" aria-label="技能包">
+        <h2>从 GitHub 安装</h2>
+        <div class="install"><label>克隆地址<input id="skill-url" type="url" placeholder="https://github.com/owner/repo.git"></label><button class="primary" id="install" type="button">安装</button></div>
+        <p class="subtle">仅接受 GitHub HTTPS 仓库；必须包含 SKILL.md 或 skills.md。安装后不会执行仓库脚本。</p>
+        <h2>本地安装</h2><div id="installed" class="list"></div>
+        <h2>内置集成</h2><div id="integrations" class="list"></div>
+      </section>
+      <section id="word" class="panel" aria-label="Word 路由">
+        <h2>编写技能</h2>
+        <p class="subtle">此选择约束 Word 的编写路由。officecli 仍负责公共检查、校验与渲染；PPT/Excel 继续使用 officecli。</p>
+        <div class="fields"><label>Word 编写后端<select data-key="WORD_AUTHORING_SKILL" id="word-choice"></select></label></div>
+        <div id="word-health" class="health"></div>
+        <div class="actions"><button class="primary" data-save="word" type="button">保存 Word 路由</button></div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

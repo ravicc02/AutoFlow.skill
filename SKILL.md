@@ -102,6 +102,13 @@ never re-writes it. A workflow must use the local paths reported by `route`; a
 manifest or runtime marked unavailable is a hard capability signal, not
 permission to invent a tool call.
 
+To manage model settings, batch image edits, GitHub Skill installation, and
+explicit Word authoring selection locally, run `python scripts/settings_web.py`
+and open the printed loopback URL. The UI writes `.env` (ignored by Git), masks
+existing secrets, and stores cloned Skills under ignored `user_skills/`.
+Installed GitHub Skills are knowledge files, not audited integration runtimes;
+their presence does not authorize executing repository scripts.
+
 Compact routing includes the module file, fresh verification, and required
 capability adapters. There is no methodology overlay loader — `route --full`
 is a compat alias of compact routing and no longer loads additional files.

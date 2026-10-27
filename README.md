@@ -25,6 +25,11 @@
 
 安装完成后，任务规模决定执行模式：单模块、无依赖的小交付走 direct；涉及来源选择、相互依赖、文档、打包或可恢复状态的交付走 managed。
 
+## 本地设置
+
+运行 `python scripts/settings_web.py`，打开终端输出的 `http://127.0.0.1:8765/`。
+设置页可以修改模型与上游、批量参考图改图的模型/4K 尺寸/回退/重试、安装或删除 GitHub Skill，并显式选择 Word 编写后端。密钥只显示是否已配置，留空保存不会覆盖旧值；`.env` 与 `user_skills/` 不会进入 Git。安装仅接受 GitHub HTTPS 克隆地址，要求仓库含 `SKILL.md` 或 `skills.md`，不执行克隆仓库的脚本。Word 公共校验仍由 officecli 执行。
+
 ## 效果总览
 
 以下全部由同一个演示项目「基于 Spring Boot + MySQL 的校园活动报名管理系统」生成。

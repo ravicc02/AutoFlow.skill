@@ -1,4 +1,5 @@
 .env
+/user_skills/
 .env.env.backup
 __pycache__/
 *.pyc

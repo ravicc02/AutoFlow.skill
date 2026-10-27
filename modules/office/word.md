@@ -15,7 +15,11 @@ this submodule applies it to DOCX workflows, it does not replace it.
 
 Backend contract:
 
-- No Word backend is pinned in `.env`. The agent chooses by task shape.
+- `WORD_AUTHORING_SKILL` in the local `.env` can explicitly pin `minimaxdocx`,
+  `officecli`, or one installed `github:<owner--repo>` Skill. `auto` retains the
+  task-shape default. An explicitly selected but unavailable Skill is blocked,
+  never replaced by officecli for authoring. Read the `skill_files` and
+  `authoring_skill` returned by `direct-route` or `route` before authoring.
 - `minimaxdocx` is the default for complex reports and theses; read the
   checked-in package at `integrations/minimax-docx/SKILL.md`, verify it with
   `python scripts/autoflow.py capabilities --json`, and never silently
@@ -24,6 +28,8 @@ Backend contract:
   inspect, validate, and render backend.
 - Before a managed PLAN_STOP, `workflow.json.capabilities.office.word_backend`
   must report the selected backend as `available`.
+- Existing managed runs retain their selected backend snapshot. Re-plan an
+  existing run after changing the Word selection in the settings UI.
 
 ## Workflow (per action)
 

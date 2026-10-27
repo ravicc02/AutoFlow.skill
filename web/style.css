@@ -1,0 +1,54 @@
+:root { color-scheme: light; font-family: "Segoe UI", "Microsoft YaHei", sans-serif; color: #202a2b; background: #f5f6f5; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+.shell { min-height: 100vh; display: grid; grid-template-columns: 218px minmax(0, 1fr); }
+.sidebar { background: #202a2a; color: #f5f8f6; padding: 25px 14px; display: flex; flex-direction: column; }
+.brand { display: flex; align-items: center; gap: 12px; padding: 0 10px 29px; }
+.brand strong { display: block; font-size: 17px; }
+.brand small { display: block; font-size: 11px; color: #afc0bb; margin-top: 2px; }
+.mark { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 5px; color: #122621; background: #86ceaf; font-weight: 800; }
+nav { display: grid; gap: 3px; }
+.nav { width: 100%; padding: 11px 12px; color: #c5d3cf; background: transparent; border: 0; border-radius: 5px; text-align: left; }
+.nav:hover, .nav:focus-visible { background: #354542; color: #fff; }
+.nav.active { background: #3c514b; color: #fff; font-weight: 600; }
+.side-note { margin-top: auto; padding: 14px 10px 0; border-top: 1px solid #41514e; color: #a4b7b1; font-size: 12px; line-height: 1.8; }
+main { width: 100%; min-width: 0; max-width: 1120px; padding: 38px 48px 80px; }
+header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 30px; padding-bottom: 22px; border-bottom: 1px solid #d9e0dc; }
+.eyebrow { color: #578678; font-size: 11px; font-weight: 700; }
+h1 { font-size: 26px; margin: 6px 0 0; font-weight: 650; }
+#state { font-size: 12px; color: #477e67; max-width: 55%; text-align: right; overflow-wrap: anywhere; }
+#state.error { color: #a33e37; }
+.panel { display: none; }
+.panel.active { display: block; }
+h2 { font-size: 15px; margin: 34px 0 17px; padding-bottom: 10px; border-bottom: 1px solid #e1e6e3; }
+h2:first-child { margin-top: 0; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 19px 24px; }
+label { display: block; font-size: 12px; font-weight: 600; color: #4e5b57; min-width: 0; }
+input, select { display: block; width: 100%; min-width: 0; height: 38px; padding: 8px 10px; margin-top: 7px; border: 1px solid #cbd5cf; background: #fff; color: #1f2926; border-radius: 4px; outline-color: #25876b; font-size: 13px; }
+input:focus-visible, select:focus-visible { border-color: #25876b; }
+input::placeholder { color: #909e98; }
+.secret-status { float: right; color: #4e8571; font-weight: 400; }
+.actions { margin-top: 25px; display: flex; justify-content: flex-end; }
+.primary { background: #176d54; color: #fff; border: 1px solid #176d54; border-radius: 4px; padding: 9px 16px; font-weight: 600; font-size: 13px; }
+.primary:hover, .primary:focus-visible { background: #10553f; }
+.subtle { font-size: 12px; color: #65736e; line-height: 1.7; margin: -4px 0 20px; }
+.install { display: flex; align-items: end; gap: 12px; }
+.install label { flex: 1; }
+.install .primary { height: 38px; white-space: nowrap; }
+.install + .subtle { margin-top: 12px; }
+.list { border-top: 1px solid #dce3df; }
+.row { min-height: 59px; display: flex; gap: 15px; align-items: center; border-bottom: 1px solid #dce3df; padding: 10px 2px; }
+.row-info { min-width: 0; flex: 1; }
+.row strong, .row small { display: block; overflow-wrap: anywhere; }
+.row strong { font-size: 13px; }
+.row small { color: #718078; font-size: 11px; margin-top: 3px; }
+.tag { font-size: 11px; padding: 3px 6px; border-radius: 3px; flex: none; }
+.tag.good { color: #176a50; background: #dcefe5; }
+.tag.warn { color: #865c23; background: #f5ead4; }
+.remove { color: #a1433b; background: none; border: 0; padding: 7px; font-size: 12px; }
+.remove:hover, .remove:focus-visible { text-decoration: underline; }
+.empty { color: #7b8b83; font-size: 12px; }
+.health { margin-top: 24px; color: #3b6c59; font-size: 12px; padding: 12px; background: #e9f1eb; border-left: 3px solid #6ba68b; }
+@media (max-width: 760px) { .shell { display: block; } .sidebar { padding: 14px; } .brand { padding-bottom: 14px; } nav { display: flex; overflow-x: auto; } .nav { flex: 0 0 auto; width: auto; white-space: nowrap; padding: 9px; } .side-note { display: none; } main { padding: 25px 18px 60px; } .fields { grid-template-columns: 1fr; } header { margin-bottom: 22px; } .install { flex-wrap: wrap; } .install label { flex-basis: 100%; } }

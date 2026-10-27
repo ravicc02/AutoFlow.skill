@@ -199,9 +199,13 @@ def prepare_image_task(
     elif raw_reference_image and not ref_image:
         raise SystemExit(f"{name}: reference_image is required for img2img mode.")
 
+    env = load_env_file()
     requested_resolution = image_config.get("resolution", "auto")
     if str(requested_resolution).strip().lower() == "auto":
-        requested_resolution = base_resolution
+        requested_resolution = (
+            config.get("edit_resolution", env.get("IMAGE_EDIT_DEFAULT_RESOLUTION", base_resolution))
+            if ref_image else base_resolution
+        )
     try:
         per_image_resolution, chosen_ratio = resolve_batch_size(
             requested_resolution,
@@ -220,13 +224,15 @@ def prepare_image_task(
         "output_dir": str(output_dir),
         "resolution": per_image_resolution,
         "aspect_ratio": chosen_ratio,
-        "max_retries": max_retries,
+        "max_retries": int(image_config.get("max_retries", config.get("edit_max_retries", env.get("IMAGE_EDIT_MAX_RETRIES", max_retries)))) if ref_image else max_retries,
         "retry_delay": retry_delay,
         "base_url": base_url,
         "api_key": api_key,
         "skip_existing": bool(policy.get("skip_existing_files", True)) and not force_existing,
         "timeout": timeout,
         "ref_image": ref_image,
+        "model": (image_config.get("model") or config.get("edit_model") or env.get("IMAGE_EDIT_MODEL") or image_model()) if ref_image else (image_config.get("model") or image_model()),
+        "fallback_model": (image_config.get("fallback_model") or config.get("edit_fallback_model") or env.get("IMAGE_EDIT_FALLBACK_MODEL") or "") if ref_image else "",
         "method": "img2img" if ref_image else "txt2img",
         "fixup_type": fixup_type or None,
     }
@@ -696,6 +702,8 @@ def generate_image_task(task_info: dict) -> Dict:
     skip_existing = task_info.get("skip_existing", False)
     timeout = task_info.get("timeout", 120)
     ref_image = task_info.get("ref_image")  # img2img: local path to reference image
+    primary_model = task_info.get("model") or image_model()
+    fallback_model = task_info.get("fallback_model") if ref_image else ""
     method = task_info.get("method", "img2img" if ref_image else "txt2img")
     fixup_type = task_info.get("fixup_type")
     last_error = None
@@ -715,43 +723,34 @@ def generate_image_task(task_info: dict) -> Dict:
             "aspect_ratio": aspect_ratio,
         }
 
-    for attempt in range(max_retries):
-        try:
-            mode_label = "[img2img]" if ref_image else "[txt2img]"
-            safe_print(f"[{index}/{total}] {mode_label} start: {name} (attempt {attempt + 1}/{max_retries})")
-            result = generate_image_single(
-                prompt=prompt,
-                output_dir=output_dir,
-                resolution=resolution,
-                filename=name,
-                silent=False,
-                base_url=base_url,
-                api_key=api_key,
-                timeout=timeout,
-                ref_image=ref_image,
-                raise_on_error=True,
-            )
-            if result:
-                safe_print(f"[{index}/{total}] [OK] {name}")
-                return {
-                    "success": True,
-                    "name": name,
-                    "file": result,
-                    "error": None,
-                    "skipped": False,
-                    "method": method,
-                    "fixup_type": fixup_type,
-                    "resolution": resolution,
-                    "aspect_ratio": aspect_ratio,
-                }
-            safe_print(f"[{index}/{total}] [FAIL] {name}, retrying...")
-            last_error = "empty image generation result"
-        except Exception as exc:
-            last_error = f"{type(exc).__name__}: {exc}"
-            safe_print(f"[{index}/{total}] [ERROR] {name}: {last_error}")
-
-        if attempt < max_retries - 1:
-            time.sleep(retry_delay)
+    if not isinstance(max_retries, int) or not 1 <= max_retries <= 10:
+        raise ValueError("max_retries must be between 1 and 10")
+    models = [primary_model] + ([fallback_model] if fallback_model and fallback_model != primary_model else [])
+    for model in models:
+        for attempt in range(max_retries):
+            try:
+                mode_label = "[img2img]" if ref_image else "[txt2img]"
+                safe_print(f"[{index}/{total}] {mode_label} start: {name} ({model}, attempt {attempt + 1}/{max_retries})")
+                result = generate_image_single(
+                    prompt=prompt, output_dir=output_dir, resolution=resolution,
+                    filename=name, silent=False, base_url=base_url, api_key=api_key,
+                    timeout=timeout, ref_image=ref_image, model=model, raise_on_error=True,
+                )
+                if result:
+                    safe_print(f"[{index}/{total}] [OK] {name}")
+                    return {
+                        "success": True, "name": name, "file": result, "error": None,
+                        "skipped": False, "method": method, "fixup_type": fixup_type,
+                        "resolution": resolution, "aspect_ratio": aspect_ratio,
+                        "model": model, "fallback_used": model != primary_model,
+                    }
+                safe_print(f"[{index}/{total}] [FAIL] {name}, retrying...")
+                last_error = "empty image generation result"
+            except Exception as exc:
+                last_error = f"{type(exc).__name__}: {exc}"
+                safe_print(f"[{index}/{total}] [ERROR] {name}: {last_error}")
+            if attempt < max_retries - 1:
+                time.sleep(retry_delay)
 
     safe_print(f"[{index}/{total}] [FAILED] {name} exhausted retries")
     return {
@@ -764,6 +763,8 @@ def generate_image_task(task_info: dict) -> Dict:
         "fixup_type": fixup_type,
         "resolution": resolution,
         "aspect_ratio": aspect_ratio,
+        "model": models[-1],
+        "fallback_used": len(models) > 1,
     }
 
 

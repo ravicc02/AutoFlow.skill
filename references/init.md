@@ -49,6 +49,13 @@ default image settings are `IMAGE_MODEL=gpt-image-2.5`,
 `IMAGE_DEFAULT_RESOLUTION=4K` (batch tier, auto aspect ratio),
 `IMAGE_MAX_RETRIES=2`, and
 `IMAGE_PROBE_RETRIES=1`.
+For reference-image batch edits, `IMAGE_EDIT_MODEL` defaults to the main image
+model, `IMAGE_EDIT_DEFAULT_RESOLUTION=4K`, `IMAGE_EDIT_MAX_RETRIES=2`, and a
+blank `IMAGE_EDIT_FALLBACK_MODEL` disables fallback. Each model gets its own
+retry budget; a configured fallback runs only after the primary model fails.
+`WORD_AUTHORING_SKILL=auto` keeps automatic Word routing. Start the local
+settings page with `python scripts/settings_web.py` to edit these fields without
+printing API keys.
 
 Office backends are not configured in `.env`. The checked-in
 `integrations/minimax-docx` package is the default for complex Word reports and

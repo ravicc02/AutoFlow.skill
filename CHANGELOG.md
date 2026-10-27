@@ -6,6 +6,9 @@
 
 ### Added
 
+- 新增仅本机监听的 Web 设置页：模型与密钥配置、批量参考图编辑默认模型/尺寸/回退模型/重试次数、GitHub HTTPS 技能包安装/删除/文件探测、Word 编写技能选择。现有密钥只显示配置状态，空白提交不覆盖；用户包存放于被 Git 忽略的 `user_skills/`。
+- 新增配置与 Web 安全测试，覆盖密钥遮蔽、请求来源校验、GitHub 克隆地址限制、受管包删除边界、改图回退以及显式 Word 选择不可用时的阻断。
+
 - 新增 `references/image-parameter-matrix.md`：记录配置上游的 1K/2K/4K × 8 种宽高比对应的 24 个像素尺寸，并规定批量生图的 `4K + auto` 选择顺序、用户显式比例优先及上游拒绝尺寸时不得静默替换。
 - 新增 `scripts/image_size.py` 与生图测试：按参考图比例或素材类型解析自动宽高比，覆盖完整矩阵、旧像素尺寸兼容、显式比例冲突及批量默认值。
 - 固化仓库维护流程：修改 Skill、引用、代码、配置或测试时，在提交前同步更新 `CHANGELOG.md` 的 `Unreleased`，验证并核对暂存内容；普通 AutoFlow 任务的运行产物不触发仓库变更日志。
@@ -20,12 +23,14 @@
 
 ### Changed
 
+- 批量 `reference_image` 任务使用独立的改图默认参数；主模型按配置次数尝试失败后才启用回退模型，并在结果中记录实际模型。Word 路由将所选 Skill 的路径和 `authoring_skill` 返回给 Agent，保留 officecli 公共校验，不再为显式指定的 Word 技能静默降级。
+
 - 批量 AI 生图默认使用 `4K` 档与 `aspect_ratio: auto`，发送到上游前解析为矩阵中的具体 `size`；参考图优先保持接近原图的比例，截图/UI 默认为 16:9，其余素材默认为 1:1。任务或单图可显式覆盖，旧 `WIDTHxHEIGHT` 值保留原样。
 - `SKILL.md`、`modules/image.md`、提示词规则、配置模板及 `.env.example` 指向统一矩阵；2K 16:9 改按矩阵使用 `2560x1440`，不再把旧 `2048x1152` 标为该档预设。
 - 生图结构校验接受 4K/2K/1K 与自动比例组合，覆盖所有矩阵比例并拒绝显式像素与比例冲突；生成报告记录解析后的尺寸和比例，环境报告的批量默认尺寸同步为 4K。
 
 - Office 采用可选第三方后端路由：`minimaxdocx`/`minimax-docx` 处理复杂 Word 报告与论文，`officecli` 继续负责通用检查、校验、渲染以及 PPT/Excel；缺运行时明确 blocked，不静默降级。相关模块、初始化说明、填充规则、故障表与 README 已同步。
-- Office 路由不再依赖 `.env` 锁定或本机 Skill 路径：`integrations/minimax-docx` 成为复杂 Word 默认可选包，Agent 按任务选择后端；`.env` 按 AI 生图与提示词质检分组，不再保存 Word 后端或第三方包路径。
+- Office 默认路由不依赖 `.env` 锁定或本机 Skill 路径：`integrations/minimax-docx` 成为复杂 Word 默认可选包；本次设置页进一步加入可选的 `WORD_AUTHORING_SKILL` 显式覆盖。`.env` 不保存第三方包路径。
 - `integrations/` 架构从"被审查的文件拷贝"升级为"插件化能力包仓库"：AutoFlow 只做三件事（发现、校验 check、分发），用法知识留在包内 SKILL.md，agent 自行阅读；AutoFlow 不再重写第三方用法或提供 adapter 封装。
 - `scripts/impeccable_adapter.mjs` 移入 `integrations/impeccable/scripts/`（作为包内离线入口），包内文档的引用自动适配；`AUTOFLOW_ADAPTER.md` 删除。
 - `detect_impeccable_backend()` 从硬编码文件列表改为注册表查询（`integration_catalog` 过滤），输出保持 `status/backend/integration_root/skill_file/runtime` 兼容。

@@ -5,6 +5,12 @@ capability package. Its knowledge (`SKILL.md`) and its tools (`scripts/`)
 travel together; AutoFlow never re-writes third-party usage guidance. The
 agent reads the package's own documentation and follows it.
 
+The local settings UI stores user-cloned GitHub Skills separately in
+`user_skills/` (Git ignored). These are untrusted knowledge files, not
+manifest-validated integrations; installing one does not authorize running
+its scripts or claim that its tools are available. Only the explicitly
+selected Word authoring Skill is included in the Word route.
+
 ## Package contract (manifest 2.0)
 
 Each package directory must contain `manifest.json` declaring:
