@@ -82,10 +82,10 @@ class BackendCliSmokeTests(unittest.TestCase):
             timeout=30,
             check=False,
         )
-        self.assertEqual(result.returncode, 0, msg=f"office engine check failed:\n{result.stdout}\n{result.stderr}")
         payload = json.loads(result.stdout)
         self.assertEqual(payload["backend"], "officecli")
         self.assertIn(payload["status"], {"available", "blocked", "missing"})
+        self.assertEqual(result.returncode, 0 if payload["status"] == "available" else 1)
         self.assertFalse(payload["external_skill_required"])
 
 

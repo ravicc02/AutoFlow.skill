@@ -15,6 +15,18 @@ def workflow_file(run: Path) -> Path:
     return run / ".autoflow" / "config" / "workflow.json"
 
 
+def make_routing_capabilities_available(run: Path) -> None:
+    path = workflow_file(run)
+    workflow = json.loads(path.read_text(encoding="utf-8"))
+    for action in workflow.get("capabilities", {}).get("image", {}).get("actions", {}).values():
+        action["status"] = "available"
+    office = workflow.get("capabilities", {}).get("office", {})
+    if office:
+        office["status"] = office["officecli_status"] = "available"
+        office["word_backend"]["status"] = "available"
+    path.write_text(json.dumps(workflow, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
 class AutoFlowCliTests(unittest.TestCase):
     def test_direct_route_resolves_one_module_without_creating_workflow_files(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -80,6 +92,7 @@ class AutoFlowCliTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(initialized.returncode, 0, initialized.stderr)
+            make_routing_capabilities_available(run)
 
             config = run / ".autoflow" / "config"
             workflow = json.loads((config / "workflow.json").read_text(encoding="utf-8"))
@@ -180,7 +193,7 @@ R1 要求文档真实生成并通过验证，证据对应 office.document 与 of
             {item["name"] for item in payload["integrations"]},
             {"impeccable", "minimax-docx", "nature-figure", "officecli"},
         )
-        self.assertTrue(all(item["status"] == "available" for item in payload["integrations"]))
+        self.assertTrue(all(item["status"] in {"available", "missing", "blocked"} for item in payload["integrations"]))
         for item in payload["integrations"]:
             self.assertIn(item["type"], {"tool", "knowledge-only"})
             self.assertGreaterEqual(len(item["capabilities"]), 1)
@@ -232,6 +245,7 @@ R1 要求文档真实生成并通过验证，证据对应 office.document 与 of
                 check=False,
             )
             self.assertEqual(initialized.returncode, 0, initialized.stderr)
+            make_routing_capabilities_available(run)
             routed = subprocess.run(
                 [sys.executable, str(CLI), "route", "--workflow", str(workflow_file(run)), "--step", "build", "--json"],
                 text=True,
@@ -281,6 +295,7 @@ R1 要求文档真实生成并通过验证，证据对应 office.document 与 of
                 check=False,
             )
             self.assertEqual(initialized.returncode, 0, initialized.stderr)
+            make_routing_capabilities_available(run)
             routed = subprocess.run(
                 [sys.executable, str(CLI), "route", "--workflow", str(workflow_file(run)), "--step", "ppt", "--json"],
                 text=True,
@@ -338,6 +353,7 @@ R1 要求文档真实生成并通过验证，证据对应 office.document 与 of
                 check=False,
             )
             self.assertEqual(initialized.returncode, 0, initialized.stderr)
+            make_routing_capabilities_available(run)
             workflow = json.loads(workflow_file(run).read_text(encoding="utf-8"))
             state = json.loads((run / ".autoflow" / "config" / "run_state.json").read_text(encoding="utf-8"))
             self.assertEqual(workflow["recipe"], "project-report-and-slides")

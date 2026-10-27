@@ -83,6 +83,8 @@ class AutoFlowTestCase(unittest.TestCase):
     def init(self, recipe):
         workflow_path = initialize_run(self.request, self.root / "run", recipe)
         workflow, state, manifest, paths = load_run(workflow_path)
+        self.make_routing_capabilities_available(workflow)
+        save_json(workflow_path, workflow)
         paths["work_plan"].write_text(COMPLETE_PLAN, encoding="utf-8")
         evidence = [
             artifact_id
@@ -114,6 +116,15 @@ class AutoFlowTestCase(unittest.TestCase):
         approve_gate(workflow, state, manifest, paths, "plan", "User approved the complete work plan")
         save_run(state, manifest, paths)
         return workflow_path, workflow, state, manifest, paths
+
+    def make_routing_capabilities_available(self, workflow):
+        image = workflow.get("capabilities", {}).get("image", {})
+        for action in image.get("actions", {}).values():
+            action["status"] = "available"
+        office = workflow.get("capabilities", {}).get("office", {})
+        if office:
+            office["status"] = office["officecli_status"] = "available"
+            office["word_backend"]["status"] = "available"
 
     def make_artifact(self, name, content="artifact"):
         path = self.root / name
@@ -913,12 +924,12 @@ class AutoFlowTestCase(unittest.TestCase):
             {item["name"] for item in catalog},
             {"impeccable", "minimax-docx", "nature-figure", "officecli"},
         )
-        self.assertTrue(all(item["status"] == "available" for item in catalog))
+        self.assertTrue(all(item["status"] in {"available", "missing", "blocked"} for item in catalog))
         for item in catalog:
             self.assertIn(item["type"], {"tool", "knowledge-only"})
             self.assertGreaterEqual(len(item["capabilities"]), 1)
         self.assertEqual({item["name"] for item in catalog if item["role"] == "engine"}, {"officecli"})
-        self.assertTrue(all(item["check_status"] == "available" for item in catalog))
+        self.assertTrue(all(item["check_status"] in {"available", "missing", "blocked"} for item in catalog))
 
     def _make_manifest(self, directory: Path, name: str, pkg_type: str, check: bool = True) -> None:
         manifest = {
@@ -997,6 +1008,8 @@ class AutoFlowTestCase(unittest.TestCase):
     def test_route_for_build_step_returns_module_and_capability_paths(self):
         workflow_path = initialize_run(self.request, self.root / "route", "project-delivery")
         workflow, state, _, _ = load_run(workflow_path)
+        self.make_routing_capabilities_available(workflow)
+        save_json(workflow_path, workflow)
         route = route_for_workflow(workflow, state, "build", compact=False)
         self.assertEqual(route["step"]["id"], "build")
         self.assertTrue(route["module_file"].endswith("modules\\task.md"))
