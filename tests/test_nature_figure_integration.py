@@ -9,6 +9,10 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+
+from env_config import env_report
+
 INTEGRATION = ROOT / "integrations" / "nature-figure"
 PLOTTER = INTEGRATION / "scripts" / "plot_templates.py"
 SCHEMATIC = ROOT / "scripts" / "generate_scientific_schematic.py"
@@ -76,7 +80,7 @@ class NatureFigureIntegrationTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, f"{kind}: {result.stderr}")
             payload = json.loads(result.stdout)
             self.assertEqual(payload["provider"], "autoflow_env_upstream")
-            self.assertEqual(payload["model"], "gpt-image-2.5")
+            self.assertEqual(payload["model"], env_report(ROOT)["image"]["model"])
             self.assertIn(kind.replace("_", " "), payload["prompt"])
 
 

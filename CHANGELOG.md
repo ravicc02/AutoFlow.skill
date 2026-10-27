@@ -4,6 +4,8 @@
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-10-27
+
 ### Added
 
 - 增加路由与文档引用回归测试：检查各模块返回的 `module_files`、Office 父/子模块次序和活跃 Markdown 相对链接。
@@ -98,4 +100,6 @@
 
 - AutoFlow Schema 1.0 不兼容旧版 AutoLab `workflow.json`；旧任务需要重新执行 `autoflow init`。
 
+[3.3.0]: https://github.com/qiuy-collab/AutoFlow.skill/releases/tag/v3.3.0
+[3.2.0]: https://github.com/qiuy-collab/AutoFlow.skill/releases/tag/v3.2.0
 [3.1.0]: https://github.com/qiuy-collab/AutoFlow.skill/releases/tag/v3.1.0

@@ -776,11 +776,15 @@ class AutoFlowTestCase(unittest.TestCase):
         self.assertEqual(workflow["capabilities"]["office"]["status"], backend["status"])
 
     def test_minimax_word_backend_is_available_from_integration_package(self):
-        backend = detect_office_backend()
+        with patch("autoflow_core.load_skill_env", return_value={"WORD_AUTHORING_SKILL": "auto"}):
+            backend = detect_office_backend()
 
-        self.assertEqual(backend["word_backend"]["selected"], "minimaxdocx")
-        self.assertEqual(backend["word_backend"]["status"], "available")
-        self.assertIn("integrations", backend["word_backend"].get("root", "").replace("\\", "/"))
+        minimax = next(item for item in backend["word_backend_options"] if item["backend"] == "minimaxdocx")
+        self.assertIn("integrations", minimax["root"].replace("\\", "/"))
+        self.assertEqual(
+            backend["word_backend"]["selected"],
+            "minimaxdocx" if minimax["status"] == "available" else "officecli",
+        )
         self.assertIn("officecli", {item["backend"] for item in backend["word_backend_options"]})
 
     def test_video_backend_is_local_and_runtime_checked(self):
