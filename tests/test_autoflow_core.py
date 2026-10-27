@@ -113,7 +113,8 @@ class AutoFlowTestCase(unittest.TestCase):
                 "planned_figures": [],
             },
         )
-        approve_gate(workflow, state, manifest, paths, "plan", "User approved the complete work plan")
+        with patch("autoflow_core.workflow_capabilities", return_value=workflow["capabilities"]):
+            approve_gate(workflow, state, manifest, paths, "plan", "User approved the complete work plan")
         save_run(state, manifest, paths)
         return workflow_path, workflow, state, manifest, paths
 
@@ -1012,7 +1013,7 @@ class AutoFlowTestCase(unittest.TestCase):
         save_json(workflow_path, workflow)
         route = route_for_workflow(workflow, state, "build", compact=False)
         self.assertEqual(route["step"]["id"], "build")
-        self.assertTrue(route["module_file"].endswith("modules\\task.md"))
+        self.assertTrue(Path(route["module_file"]).as_posix().endswith("modules/task.md"))
         self.assertTrue(all(Path(path).is_file() for path in route["skill_files"]))
         self.assertTrue(all(Path(path).is_file() for path in route["capability_files"]))
 
