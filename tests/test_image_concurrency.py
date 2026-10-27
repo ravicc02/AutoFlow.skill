@@ -12,7 +12,7 @@ import generate_images
 
 
 RESOLUTIONS = {
-    "2k_16_9": "2048x1152",
+    "2k_16_9": "2560x1440",
     "4k_16_9": "3840x2160",
 }
 

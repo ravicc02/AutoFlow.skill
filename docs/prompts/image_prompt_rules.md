@@ -53,8 +53,13 @@ Before writing prompts:
 
 ## Resolution and concurrency
 
-- Use `2048x1152` for `2K 16:9`.
-- Use `3840x2160` for `4K 16:9`.
+- Read `references/image-parameter-matrix.md` for all 1K/2K/4K and eight
+  aspect-ratio combinations. The batch default is `resolution: "4K"` plus
+  `aspect_ratio: "auto"`, resolved for each image before requesting the API.
+- Select a requested ratio explicitly. When it is unspecified, auto follows a
+  reference image, then the asset-type fallback documented in the matrix.
+- Use `2560x1440` for 2K 16:9 and `3840x2160` for 4K 16:9. Existing explicit
+  pixel sizes remain valid; do not relabel a legacy size as a matrix preset.
 - Do not assume maximum concurrency is supported upstream.
 - Test 2K/4K 16:9 with `tests/test_image_concurrency.py` when a batch run will be expensive or time-sensitive.
 - If high concurrency fails, reduce to the highest passing worker count and record whether the failure came from upstream API rejection, timeout/rate limits, or a local script/config issue.

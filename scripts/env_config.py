@@ -56,7 +56,7 @@ def env_report(root: Path) -> dict[str, Any]:
             "missing": image_missing,
             "configured": not image_missing,
             "model": values.get("IMAGE_MODEL") or "gpt-image-2.5",
-            "default_resolution": values.get("IMAGE_DEFAULT_RESOLUTION") or "1024x1024",
+            "default_resolution": values.get("IMAGE_DEFAULT_RESOLUTION") or "4K",
             "max_retries": _int_value(values.get("IMAGE_MAX_RETRIES"), 2),
             "probe_retries": _int_value(values.get("IMAGE_PROBE_RETRIES"), 1),
         },

@@ -23,6 +23,12 @@ Explicit invocation always wins: if the user asks for `autoflow`, use this Skill
 - Register only real, validated artifacts. Placeholder code, mock evidence, and unverified deliverables do not count.
 - This is AutoFlow Schema 1.0. Do not run legacy AutoLab workflow files.
 
+When maintaining AutoFlow itself (rather than producing a task artifact),
+update `CHANGELOG.md` under `Unreleased` before committing any Skill,
+reference, code, configuration, example, or test change. Verify tests and
+check that the staged commit contains both the intended change and its
+changelog entry. Follow `CONTRIBUTING.md`; do not include unrelated edits.
+
 ## Read before acting
 
 Always read:
@@ -83,6 +89,9 @@ python scripts/autoflow.py env-check --json
 It reports the selected image model, resolution, retry limits, and validator
 configuration without exposing secrets. Office backend availability is reported
 separately by `capabilities --json`.
+For AI-image batch size selection, follow
+[the image parameter matrix](references/image-parameter-matrix.md): default
+4K with an auto-selected aspect ratio, unless the request specifies otherwise.
 
 The command validates each integration manifest against
 `autoflow/integration-manifest/2.0` (name, type, capabilities, check entry,

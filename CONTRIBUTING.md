@@ -15,15 +15,16 @@
 1. Fork 本仓库,从 `master` 拉分支:`git checkout -b fix/xxx`
 2. 改动必须配套:
    - 新模块 → 更新 `SKILL.md` 路由表与 `references/directory-layout.md`
-   - 行为变化 → 更新 `CHANGELOG.md`
+   - 仓库内 Skill、引用、代码、配置、示例或测试变更 → 提交前更新 `CHANGELOG.md` 的 `Unreleased`，分别写清新增、变化和修复；纯运行产物不属于仓库改动
    - 逻辑改动 → 在 `tests/` 补测试
 3. 本地验证:
    ```bash
    python -m unittest discover -s tests -v
    python -m compileall -q scripts tests
    ```
-4. 提交信息使用 Conventional Commits:`feat:` / `fix:` / `docs:` / `refactor:` / `test:`
-5. 提 Pull Request,说明改动动机和验证结果
+4. 用 `git diff --check` 和 `git diff --cached --name-only` 核对暂存内容；仅暂存本次改动，确认本次提交同时包含变更日志，再提交。不要顺手提交其他工作区改动。
+5. 提交信息使用 Conventional Commits:`feat:` / `fix:` / `docs:` / `refactor:` / `test:`
+6. 提 Pull Request,说明改动动机和验证结果
 
 ## 行为准则
 

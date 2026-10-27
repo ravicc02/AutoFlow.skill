@@ -6,6 +6,10 @@
 
 ### Added
 
+- 新增 `references/image-parameter-matrix.md`：记录配置上游的 1K/2K/4K × 8 种宽高比对应的 24 个像素尺寸，并规定批量生图的 `4K + auto` 选择顺序、用户显式比例优先及上游拒绝尺寸时不得静默替换。
+- 新增 `scripts/image_size.py` 与生图测试：按参考图比例或素材类型解析自动宽高比，覆盖完整矩阵、旧像素尺寸兼容、显式比例冲突及批量默认值。
+- 固化仓库维护流程：修改 Skill、引用、代码、配置或测试时，在提交前同步更新 `CHANGELOG.md` 的 `Unreleased`，验证并核对暂存内容；普通 AutoFlow 任务的运行产物不触发仓库变更日志。
+
 - 新增 `integrations/` 包契约（manifest 2.0）：每个包声明 `type`（tool/knowledge-only）、`capabilities`（能力名列表）、`check` 入口（仅探测本地运行条件）；核心层 `IntegrationRegistry` 自动发现所有包，`integration_catalog()` 依赖注册表输出，不再硬编码 detect 函数。
 - 新增 `integrations/officecli/` 包：officecli 官方 SKILL.md 迁入集成目录，manifest 声明 `role: engine` + 三个 office 能力，check 脚本探测本机二进制版本。
 - 新增 `integrations/nature-figure/scripts/check.py` 与 `integrations/impeccable/scripts/check.py`：分别探测 Python 依赖和 Node.js 可用性（manifest 2.0 升级）。
@@ -15,6 +19,10 @@
 - 新增浏览器截图 `capture_scope`（viewport/selector/page）与跨平台浏览器检测（PATH 查找 + `AUTOFLOW_BROWSER_PATH`）：一块完整看板可超出单视口高度，不再用长图拼接多个独立看板；视觉审查清单新增规则 8/9，配套 `tests/test_capture_frontend_screenshots.py`。
 
 ### Changed
+
+- 批量 AI 生图默认使用 `4K` 档与 `aspect_ratio: auto`，发送到上游前解析为矩阵中的具体 `size`；参考图优先保持接近原图的比例，截图/UI 默认为 16:9，其余素材默认为 1:1。任务或单图可显式覆盖，旧 `WIDTHxHEIGHT` 值保留原样。
+- `SKILL.md`、`modules/image.md`、提示词规则、配置模板及 `.env.example` 指向统一矩阵；2K 16:9 改按矩阵使用 `2560x1440`，不再把旧 `2048x1152` 标为该档预设。
+- 生图结构校验接受 4K/2K/1K 与自动比例组合，覆盖所有矩阵比例并拒绝显式像素与比例冲突；生成报告记录解析后的尺寸和比例，环境报告的批量默认尺寸同步为 4K。
 
 - Office 采用可选第三方后端路由：`minimaxdocx`/`minimax-docx` 处理复杂 Word 报告与论文，`officecli` 继续负责通用检查、校验、渲染以及 PPT/Excel；缺运行时明确 blocked，不静默降级。相关模块、初始化说明、填充规则、故障表与 README 已同步。
 - Office 路由不再依赖 `.env` 锁定或本机 Skill 路径：`integrations/minimax-docx` 成为复杂 Word 默认可选包，Agent 按任务选择后端；`.env` 按 AI 生图与提示词质检分组，不再保存 Word 后端或第三方包路径。

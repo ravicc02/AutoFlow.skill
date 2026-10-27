@@ -31,6 +31,7 @@ from typing import Optional, List, Dict
 import requests
 
 from env_config import load_skill_env
+from image_size import SIZE_MATRIX, resolve_batch_size
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -77,7 +78,7 @@ ASSET_MODE_MAP = {
     "photo": {"generic"},
     "illustration": {"generic"},
 }
-SCREENSHOT_RESOLUTIONS = {"2560x1440", "2048x1152", "1920x1080"}
+SCREENSHOT_RESOLUTIONS = {"2560x1440", "2048x1152", "1920x1080", "1280x720", "3840x2160"}
 DIAGRAM_RESOLUTIONS = {"1600x1000", "1920x1080", "2048x1152"}
 SQUARE_RESOLUTIONS = {"1024x1024"}
 
@@ -268,53 +269,45 @@ def validate_structure(config: dict, config_dir: Path) -> dict:
                     all_pass = False
 
             if "resolution" in img:
-                parsed = parse_resolution(img["resolution"])
-                if not parsed:
+                requested = img["resolution"]
+                if str(requested).strip().lower() == "auto":
+                    requested = config.get("resolution", "4K")
+                raw_reference = img.get("reference_image")
+                ref_path = (config_dir / raw_reference).resolve() if raw_reference else None
+                try:
+                    resolved, _ = resolve_batch_size(
+                        requested,
+                        img.get("aspect_ratio", config.get("aspect_ratio", "auto")),
+                        asset_type=img.get("asset_type", "screenshot"),
+                        reference_image=str(ref_path) if ref_path and ref_path.is_file() else None,
+                    )
+                except (OSError, ValueError) as exc:
                     checks.append({
                         "rule": f"Layer 0 �� invalid image resolution format: {prefix}",
                         "result": "fail",
-                        "issue": f"resolution must use WIDTHxHEIGHT format, got '{img['resolution']}'",
-                        "fix_suggestion": "Use a value such as 2560x1440, 2048x1152, 1600x1000, or 1024x1024",
+                        "issue": str(exc),
+                        "fix_suggestion": "Use 1K, 2K, 4K with aspect_ratio auto or one of the eight matrix ratios; legacy WIDTHxHEIGHT is also accepted",
                         "affected_field": f"{prefix}.resolution"
                     })
                     all_pass = False
                 else:
-                    width, height = parsed
                     asset_type = img.get("asset_type")
-                    resolution = img["resolution"]
-                    if asset_type == "screenshot":
-                        if not is_16_9_pair(width, height):
-                            checks.append({
-                                "rule": f"Layer 0 �� screenshot ratio mismatch: {prefix}",
-                                "result": "fail",
-                                "issue": f"screenshot asset_type must use an approximately 16:9 resolution, got '{resolution}'",
-                                "fix_suggestion": "Use 2560x1440, 2048x1152, or 1920x1080 for screenshots",
-                                "affected_field": f"{prefix}.resolution"
-                            })
-                            all_pass = False
-                        elif resolution not in SCREENSHOT_RESOLUTIONS:
-                            checks.append({
-                                "rule": f"Layer 0 �� screenshot resolution warning: {prefix}",
-                                "result": "warn",
-                                "issue": f"Screenshot resolution '{resolution}' is valid 16:9 but not in the recommended set",
-                                "fix_suggestion": "Prefer 2560x1440, 2048x1152, or 1920x1080 for screenshots",
-                                "affected_field": f"{prefix}.resolution"
-                            })
-                    elif asset_type == "diagram":
-                        if resolution not in DIAGRAM_RESOLUTIONS:
+                    matrix_sizes = {size for tier in SIZE_MATRIX.values() for size in tier.values()}
+                    if asset_type == "diagram":
+                        if resolved not in DIAGRAM_RESOLUTIONS | matrix_sizes:
                             checks.append({
                                 "rule": f"Layer 0 �� diagram resolution warning: {prefix}",
                                 "result": "warn",
-                                "issue": f"Diagram resolution '{resolution}' is outside the recommended set for diagram assets",
-                                "fix_suggestion": "Prefer 1600x1000, 1920x1080, or 2048x1152 for diagrams",
+                                "issue": f"Diagram resolution '{resolved}' is outside the matrix and legacy diagram presets",
+                                "fix_suggestion": "Prefer a matrix preset or an existing diagram size",
                                 "affected_field": f"{prefix}.resolution"
                             })
-                    elif asset_type in {"ui_mockup", "photo", "illustration"} and resolution not in SCREENSHOT_RESOLUTIONS | DIAGRAM_RESOLUTIONS | SQUARE_RESOLUTIONS:
+                    elif resolved not in matrix_sizes | SCREENSHOT_RESOLUTIONS | DIAGRAM_RESOLUTIONS | SQUARE_RESOLUTIONS:
                         checks.append({
                             "rule": f"Layer 0 �� uncommon resolution warning: {prefix}",
                             "result": "warn",
-                            "issue": f"Resolution '{resolution}' is uncommon for asset_type '{asset_type}'",
-                            "fix_suggestion": "Use a standard widescreen or square resolution unless the task explicitly needs another ratio",
+                            "issue": f"Resolution '{resolved}' is outside the matrix and legacy presets for asset_type '{asset_type}'",
+                            "fix_suggestion": "Prefer a matrix preset unless the task needs a legacy pixel size",
                             "affected_field": f"{prefix}.resolution"
                         })
 
@@ -333,6 +326,8 @@ def validate_structure(config: dict, config_dir: Path) -> dict:
 
     # ── mark all remaining keys as pass ──
     unmarked = _find_unmarked_structural_checks(config)
+    if any(item["result"] == "fail" for item in unmarked):
+        all_pass = False
     for um in unmarked:
         checks.append(um)
 
@@ -373,28 +368,32 @@ def _find_unmarked_structural_checks(config: dict) -> List[Dict]:
 
     res = config.get("resolution", "")
     parsed_top = parse_resolution(res)
-    if not parsed_top:
+    if str(res).upper() in SIZE_MATRIX or str(res).lower() == "auto":
+        try:
+            resolve_batch_size(res, config.get("aspect_ratio", "auto"))
+        except ValueError as exc:
+            results.append({"rule": "Layer 0 - resolution validity", "result": "fail", "issue": str(exc), "fix_suggestion": "Use auto or one of the eight matrix ratios", "affected_field": "aspect_ratio"})
+        else:
+            results.append({"rule": "Layer 0 - resolution validity", "result": "pass", "issue": "", "fix_suggestion": "", "affected_field": ""})
+    elif not parsed_top:
         results.append({
             "rule": "Layer 0 - resolution validity",
             "result": "fail",
-            "issue": f"Invalid resolution format: '{res}'. Expected WIDTHxHEIGHT",
-            "fix_suggestion": "Set resolution to '2048x1152', '2560x1440', '1600x1000', or '1024x1024'",
-            "affected_field": "resolution"
-        })
-    elif res not in SCREENSHOT_RESOLUTIONS | DIAGRAM_RESOLUTIONS | SQUARE_RESOLUTIONS:
-        results.append({
-            "rule": "Layer 0 - resolution validity",
-            "result": "warn",
-            "issue": f"Unusual resolution: '{res}'. Expected a recommended screenshot, diagram, or square preset.",
-            "fix_suggestion": "Prefer 2048x1152 or 2560x1440 for screenshots, 1600x1000 for diagrams, or 1024x1024 for square assets",
+            "issue": f"Invalid resolution format: '{res}'. Expected 1K, 2K, 4K, auto, or WIDTHxHEIGHT",
+            "fix_suggestion": "Use 4K with aspect_ratio auto, or a legacy pixel size",
             "affected_field": "resolution"
         })
     else:
+        try:
+            resolve_batch_size(res, config.get("aspect_ratio", "auto"))
+        except ValueError as exc:
+            results.append({"rule": "Layer 0 - resolution validity", "result": "fail", "issue": str(exc), "fix_suggestion": "Make the pixel size and aspect_ratio consistent", "affected_field": "aspect_ratio"})
+            return results
         results.append({
             "rule": "Layer 0 - resolution validity",
-            "result": "pass",
-            "issue": "",
-            "fix_suggestion": "",
+            "result": "pass" if res in SCREENSHOT_RESOLUTIONS | DIAGRAM_RESOLUTIONS | SQUARE_RESOLUTIONS else "warn",
+            "issue": "" if res in SCREENSHOT_RESOLUTIONS | DIAGRAM_RESOLUTIONS | SQUARE_RESOLUTIONS else f"Legacy pixel size '{res}' is outside the matrix presets.",
+            "fix_suggestion": "" if res in SCREENSHOT_RESOLUTIONS | DIAGRAM_RESOLUTIONS | SQUARE_RESOLUTIONS else "Prefer a 1K/2K/4K matrix tier for new batches",
             "affected_field": ""
         })
 

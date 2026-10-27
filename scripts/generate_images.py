@@ -14,6 +14,7 @@ import requests
 from requests.exceptions import RequestsDependencyWarning
 
 from env_config import load_skill_env
+from image_size import normalize_resolution as normalize_image_resolution, resolve_batch_size
 
 warnings.filterwarnings("ignore", category=RequestsDependencyWarning)
 
@@ -101,13 +102,6 @@ DEFAULT_POLICY = {
     },
 }
 
-RESOLUTION_ALIASES = {
-    "2k_16_9": "2048x1152",
-    "2K 16:9": "2048x1152",
-    "4k_16_9": "3840x2160",
-    "4K 16:9": "3840x2160",
-}
-
 SCREENSHOT_NEGATIVE_PROMPT = (
     "Only show content that could naturally appear in a real screen capture. "
     "Do not add explanatory text panels, poster layouts, arrows, flowcharts, split-screen teaching boards, "
@@ -142,7 +136,7 @@ def normalize_policy(config: dict) -> dict:
 
 
 def normalize_resolution(value: str) -> str:
-    return RESOLUTION_ALIASES.get(str(value).strip(), str(value).strip())
+    return normalize_image_resolution(value)
 
 
 def load_fixed_clarity_prompt() -> str:
@@ -182,7 +176,6 @@ def prepare_image_task(
     name = image_config.get("name", f"image_{index}")
     prompt = str(image_config.get("prompt", "") or "").strip()
     mode = image_config.get("mode", policy.get("default_mode", "generic"))
-    per_image_resolution = normalize_resolution(image_config.get("resolution", base_resolution))
     fixup_type = str(image_config.get("fixup_type", "") or "").strip().lower()
     raw_reference_image = image_config.get("reference_image")
 
@@ -206,6 +199,19 @@ def prepare_image_task(
     elif raw_reference_image and not ref_image:
         raise SystemExit(f"{name}: reference_image is required for img2img mode.")
 
+    requested_resolution = image_config.get("resolution", "auto")
+    if str(requested_resolution).strip().lower() == "auto":
+        requested_resolution = base_resolution
+    try:
+        per_image_resolution, chosen_ratio = resolve_batch_size(
+            requested_resolution,
+            image_config.get("aspect_ratio", config.get("aspect_ratio", "auto")),
+            asset_type=image_config.get("asset_type", policy.get("default_asset_type", "screenshot")),
+            reference_image=ref_image,
+        )
+    except (OSError, ValueError) as exc:
+        raise SystemExit(f"{name}: {exc}") from exc
+
     task = {
         "index": index,
         "total": total_count,
@@ -213,6 +219,7 @@ def prepare_image_task(
         "prompt": full_prompt,
         "output_dir": str(output_dir),
         "resolution": per_image_resolution,
+        "aspect_ratio": chosen_ratio,
         "max_retries": max_retries,
         "retry_delay": retry_delay,
         "base_url": base_url,
@@ -681,6 +688,7 @@ def generate_image_task(task_info: dict) -> Dict:
     prompt = task_info["prompt"]
     output_dir = task_info["output_dir"]
     resolution = task_info["resolution"]
+    aspect_ratio = task_info.get("aspect_ratio")
     max_retries = task_info.get("max_retries", 3)
     retry_delay = task_info.get("retry_delay", 2)
     base_url = task_info.get("base_url")
@@ -703,6 +711,8 @@ def generate_image_task(task_info: dict) -> Dict:
             "skipped": True,
             "method": method,
             "fixup_type": fixup_type,
+            "resolution": resolution,
+            "aspect_ratio": aspect_ratio,
         }
 
     for attempt in range(max_retries):
@@ -731,6 +741,8 @@ def generate_image_task(task_info: dict) -> Dict:
                     "skipped": False,
                     "method": method,
                     "fixup_type": fixup_type,
+                    "resolution": resolution,
+                    "aspect_ratio": aspect_ratio,
                 }
             safe_print(f"[{index}/{total}] [FAIL] {name}, retrying...")
             last_error = "empty image generation result"
@@ -750,6 +762,8 @@ def generate_image_task(task_info: dict) -> Dict:
         "skipped": False,
         "method": method,
         "fixup_type": fixup_type,
+        "resolution": resolution,
+        "aspect_ratio": aspect_ratio,
     }
 
 
@@ -763,12 +777,13 @@ def generate_from_config(
         config = json.load(handle)
 
     total_count = config.get("total_count", 1)
-    resolution = normalize_resolution(config.get("resolution", "1024x1024"))
+    env = load_env_file()
+    resolution = normalize_resolution(config.get("resolution", env.get("IMAGE_DEFAULT_RESOLUTION", "4K")))
+    aspect_ratio = config.get("aspect_ratio", "auto")
     global_prompt = config.get("global_prompt", "")
     output_dir = resolve_output_dir(config_path_obj, config.get("output_dir"))
     images = config.get("images", [])
     max_workers = min(int(config.get("max_workers", 4)), 8, max(total_count, 1))
-    env = load_env_file()
     max_retries = int(config.get("max_retries", env.get("IMAGE_MAX_RETRIES", 2)))
     retry_delay = config.get("retry_delay", 2)
     policy = normalize_policy(config)
@@ -783,6 +798,7 @@ def generate_from_config(
     safe_print(f"config: {config_path_obj}")
     safe_print(f"count: {total_count}")
     safe_print(f"resolution: {resolution}")
+    safe_print(f"aspect_ratio: {aspect_ratio}")
     safe_print(f"workers: {max_workers}")
     safe_print(f"retries: {max_retries}")
     safe_print(f"output_dir: {output_dir}")
@@ -842,7 +858,7 @@ def generate_from_config(
             except Exception as exc:
                 task = future_to_task[future]
                 safe_print(f"[ERROR] task {task['name']} failed: {exc}")
-                results.append({"success": False, "name": task["name"], "file": None, "error": f"{type(exc).__name__}: {exc}", "skipped": False})
+                results.append({"success": False, "name": task["name"], "file": None, "error": f"{type(exc).__name__}: {exc}", "skipped": False, "resolution": task["resolution"], "aspect_ratio": task["aspect_ratio"]})
 
             elapsed = time.time() - start_time
             success_count = sum(1 for item in results if item["success"])

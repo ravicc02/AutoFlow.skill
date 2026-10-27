@@ -2,8 +2,9 @@
   "_comment": "=== prompt_config.json TEMPLATE v2.0 === Read this entire file before filling. Keep all fields. Replace values inside <...> placeholders. Delete _comment fields in the final output.",
   "task_name": "<project_task_identifier>",
   "total_count": 0,
-  "resolution": "2048x1152",
-  "_resolution_comment": "2560x1440 or 2048x1152 for screenshots; 1600x1000 for diagrams; 1024x1024 for icons. Must be 16:9 for screenshot asset_type.",
+  "resolution": "4K",
+  "aspect_ratio": "auto",
+  "_resolution_comment": "Batch defaults to 4K + auto. See references/image-parameter-matrix.md for all 24 tier/ratio sizes; explicit legacy WIDTHxHEIGHT is also accepted.",
   "output_dir": "./autoflow/.autoflow/intermediate/generated_images",
   "_output_dir_comment": "Relative to the workspace; generated assets stay in the run's intermediate directory.",
   "max_workers": 4,
@@ -87,8 +88,9 @@
       "mode": "screenshot_strict",
       "_mode_comment": "screenshot_strict (for screenshot), diagram_strict (for diagram), generic (for others).",
 
-      "resolution": "2560x1440",
-      "_resolution_comment": "Per-image override of top-level resolution. Screenshot must be 16:9.",
+      "resolution": "auto",
+      "aspect_ratio": "auto",
+      "_resolution_comment": "auto inherits the batch tier; the ratio follows a reference image or asset-type fallback. Set an explicit aspect_ratio when the request specifies one.",
 
       "consistency_group": "<group name, e.g. dhcp_export_w62>",
       "_consistency_group_comment": "Images sharing the same group name are checked for scene_anchor consistency.",

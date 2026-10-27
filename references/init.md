@@ -46,7 +46,8 @@ python scripts/autoflow.py capabilities --json
 The AI report includes the configured image model, default resolution, retry
 limits, and missing validator fields without exposing `APIKEY` values. The
 default image settings are `IMAGE_MODEL=gpt-image-2.5`,
-`IMAGE_DEFAULT_RESOLUTION=1024x1024`, `IMAGE_MAX_RETRIES=2`, and
+`IMAGE_DEFAULT_RESOLUTION=4K` (batch tier, auto aspect ratio),
+`IMAGE_MAX_RETRIES=2`, and
 `IMAGE_PROBE_RETRIES=1`.
 
 Office backends are not configured in `.env`. The checked-in
